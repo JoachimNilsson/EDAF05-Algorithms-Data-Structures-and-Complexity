@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author joachimnilsson
- *
- */
-package test;
