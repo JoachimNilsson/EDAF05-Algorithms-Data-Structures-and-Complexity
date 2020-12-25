@@ -1,0 +1,110 @@
+package solution;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+import java.util.TreeSet;
+
+public class Main {
+	public static class Node implements Comparable<Node> {
+		private int index;
+		private int d=Integer.MAX_VALUE;
+		
+		
+		public Node(int index){
+			this.index=index;
+		}
+		
+		public int getIndex(){
+			return index;
+		}
+		
+		public int getD(){
+			return d;
+		}
+		
+		public void setD(int d){
+			this.d=d;
+		}
+
+		@Override
+		public int compareTo(Node node) {
+			if (this.d-node.d==0){
+				return this.index-node.index;
+			}else{
+				return this.d-node.d;
+			}
+		}
+	
+	}
+	
+	public static class WeightNode {
+		int index;
+		int weight;
+		
+		public WeightNode(int index, int weight){
+			this.index=index;
+			this.weight=weight;
+		}
+		
+		public int getIndex(){
+			return index;
+		}
+		
+		public int getWeight(){
+			return weight;
+		}
+	}
+	public static void main(String[] args) {
+		
+		Scanner scan = new Scanner(System.in);
+		int n = scan.nextInt();
+		int m = scan.nextInt();
+		TreeSet<Node> q = new TreeSet<Node>();
+		Boolean[] choosenNodes=new Boolean[n];
+		List<List<WeightNode>> weights = new ArrayList<List<WeightNode>>(n);
+		for (int i = 0; i < n; i++) {
+			weights.add(i,new ArrayList<WeightNode>()); 
+		}
+		for (int i = 0; i < m; i++) {
+			int neighbour1= scan.nextInt();
+			int neighbour2= scan.nextInt();
+			int w = scan.nextInt();
+
+			weights.get(neighbour1-1).add(new WeightNode(neighbour2,w));
+			weights.get(neighbour2-1).add(new WeightNode(neighbour1,w));
+		}
+		Node[] nodes = new Node[n];
+		for (int i = 1; i < n+1; i++) {
+			nodes[i-1]=new Node(i);;
+			q.add(nodes[i-1]);
+			choosenNodes[i-1]=false;
+		}
+		int totalTime=0;
+		Node currentNode = q.pollFirst();
+		choosenNodes[currentNode.getIndex()-1]=true;
+		while (!q.isEmpty()) {
+			int idx=currentNode.getIndex()-1;
+			List<WeightNode> neighbours = weights.get(idx);
+
+			for (int i = 0; i < neighbours.size(); i++) {
+				idx=neighbours.get(i).getIndex()-1;
+				if (choosenNodes[idx]==false){
+					if (neighbours.get(i).getWeight() < nodes[idx].getD()) {	
+						q.remove(nodes[idx]);
+						nodes[idx].setD(neighbours.get(i).getWeight());
+						q.add(nodes[idx]);
+					}
+				}
+			}
+			currentNode = q.pollFirst();
+			choosenNodes[currentNode.getIndex()-1]=true;
+			totalTime+=currentNode.getD();
+		}
+		System.out.println(totalTime);
+		scan.close();
+	}
+}

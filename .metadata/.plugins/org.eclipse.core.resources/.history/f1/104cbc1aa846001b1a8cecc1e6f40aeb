@@ -1,0 +1,138 @@
+package solution;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
+
+
+public class ClosestPair {
+	
+	public static class Point  {
+		private int x;
+		private int y;
+		public Point(int x, int y) {
+			this.x=x;
+			this.y=y;
+		}
+		public int getX(){
+			return x;
+		}
+		public int getY(){
+			return y;
+		}
+		public double getDistance(Point p){
+			return Math.hypot(p.x-x , p.y-y);
+		}
+		
+	}
+	public static class XCompare implements Comparator<Point> {
+		@Override
+		public int compare(Point p1, Point p2) {
+			return p1.getX() - p2.getX();
+		}	
+	}
+	public static class YCompare implements Comparator<Point> {
+		@Override
+		public int compare(Point p1, Point p2) {
+			return p1.getY() - p2.getY();
+		}
+		
+	}
+
+	public static double closest(List<Point> px, List<Point> py, int n){
+		if (n<4){
+			double delta = (double)Integer.MAX_VALUE;
+			for (int i = 0; i < px.size()-1; i++) {
+				for (int j = i+1; j < px.size(); j++) {
+					double dist = px.get(i).getDistance(px.get(j));
+					if(delta>dist){
+						delta=dist;
+					}
+				}
+			}
+			return delta;
+			
+		}else{
+
+			int n1 = n/2;
+			double midX = px.get(n1).getX();
+			System.out.println(midX);
+			List<Point> lx = new ArrayList<Point>();
+			List<Point> rx = new ArrayList<Point>();
+			List<Point> ly = new ArrayList<Point>();
+			List<Point> ry = new ArrayList<Point>();
+			for (int i = 0; i < py.size(); i++) {
+				if(py.get(i).getX() < midX){
+					ly.add(py.get(i));
+				}else{
+					ry.add(py.get(i));
+				}
+			}
+			for (int i = 0; i < px.size(); i++) {
+				if(px.get(i).getX() < midX){
+					lx.add(px.get(i));
+				}else{
+					rx.add(px.get(i));
+				}
+			}
+			
+			double dist1 = closest(lx,ly,lx.size());
+			double dist2 = closest(rx,ry,rx.size());
+			double delta = Math.min(dist1, dist2);
+			List<Point> sy = new ArrayList<Point>();
+			for (Point point : py) {
+				if(Math.abs(point.getX() - midX) < delta){
+					sy.add(point);
+				}
+			}
+			
+			for (int i = 0; i < sy.size()-1; i++) {
+				int C = Math.min(sy.size()-i,16);
+				for (int j = i+1; j < i+C; j++) {
+					double dist = sy.get(i).getDistance(sy.get(j));
+					if(delta>dist){
+						delta=dist;
+					}
+				}
+			}
+			return delta;
+			
+		}
+
+		
+		
+	}
+	
+	public static void main(String[] args) {
+		//long start = System.currentTimeMillis();
+		Scanner scan = new Scanner(System.in);
+		int N = scan.nextInt();
+		List<Point> xPoints = new ArrayList<Point>(N);
+		List<Point> yPoints = new ArrayList<Point>(N);
+		for (int i = 0; i < N; i++) {
+			int x = scan.nextInt();
+			int y = scan.nextInt();
+			Point point = new Point(x,y);
+			xPoints.add(i, point);
+			yPoints.add(i, point);
+		}
+		//long end = System.currentTimeMillis();
+		//System.out.println("Scanning: " + (end-start));
+		//start = System.currentTimeMillis();
+		
+		Collections.sort(xPoints,new XCompare());
+		Collections.sort(yPoints, new YCompare());
+		
+		double dist = closest(xPoints, yPoints, xPoints.size());
+		System.out.println(BigDecimal.valueOf(dist).setScale(6, BigDecimal.ROUND_HALF_UP));
+		
+		//long end = System.currentTimeMillis();
+		//System.out.println("Algorithm: " + (end-start));
+		scan.close();
+
+	}
+
+}

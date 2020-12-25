@@ -1,0 +1,178 @@
+package solution;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Scanner;
+
+public class RailwayPlanning {
+
+	public static class Edge {
+		
+		private Node node;
+		private int edgeNumber;
+		private int capacity;
+		private int flow;
+		public Edge(Node node, int capacity, int edgeNumber){
+			this.node=node;
+			this.capacity=capacity;
+			this.flow=0;
+			this.edgeNumber=edgeNumber;
+			
+		}
+		public int getFlow(){
+			return flow;
+		}
+		public int getCapacity(){
+			return capacity;
+		}
+		public Node getNode(){
+			return node;
+		}
+		public int getEdgeNumber(){
+			return edgeNumber;
+		}
+		public void setFlow(int f){
+			flow=f;
+		}
+		
+	}
+	
+	public static class Node implements Comparable<Node>{
+		private int idx;
+		private boolean visited;
+		private Node pred;
+		private Map<Node, Edge> neighbours;
+		
+		
+		public Node(int idx){
+			this.idx=idx;
+			neighbours = new HashMap<Node, Edge>(); 
+		}
+		
+		public int getIndex(){
+			return idx;
+		}
+		
+		public Map<Node,Edge> getNeighbours(){
+			return neighbours;
+		}
+		
+		public void addNeighbour(Node node, Edge edge){
+			neighbours.put(node, edge);
+		}
+		
+		public boolean getVisited(){
+			return visited;
+		}
+		
+		public void setVisited(boolean visit){
+			visited=visit;
+		}
+		
+		public Node getPred(){
+			return pred;
+		}
+		
+		public void setPred(Node p){
+			pred=p;
+		}
+
+		@Override
+		public int compareTo(Node node) {
+			return idx - node.idx;
+		}
+		
+		public boolean equals(Node node){
+			if(idx==node.idx){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	public static boolean BFS(Node[] nodes, int start, int end){
+		if(end==start){
+			return true;
+		}
+		
+		for (Node node :nodes) {
+			node.setVisited(false);
+		}
+		nodes[start].setVisited(true);
+		
+		Queue<Node> q = new LinkedList<>();
+		q.add(nodes[start]);
+
+		while(!q.isEmpty()){
+			Node v=q.poll();
+			
+			for (Node vNeighbour : v.getNeighbours().keySet() ) {
+				if(!vNeighbour.getVisited()){
+					vNeighbour.setVisited(true);
+					q.add(vNeighbour);
+					vNeighbour.setPred(v);
+					
+					if(vNeighbour.getIndex()==end){
+						int delta=Integer.MAX_VALUE;
+						while(vNeighbour.getPred().getIndex()!=start){
+							int flow=vNeighbour.getPred().getNeighbours().get(vNeighbour).getFlow();
+							if (flow<delta){
+								delta=flow;
+							}
+							vNeighbour=vNeighbour.getPred();
+						}
+						
+						vNeighbour = nodes[end];
+						while(vNeighbour.getPred().getIndex()!=start){
+							vNeighbour.getPred().getNeighbours().get(vNeighbour).setFlow(delta);
+							vNeighbour=vNeighbour.getPred();
+						}
+						
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+		
+	
+	public static void main(String[] args) {
+		Scanner scan = new Scanner(System.in);
+		int n = scan.nextInt();
+		int m = scan.nextInt();
+		int c = scan.nextInt();
+		int p = scan.nextInt();
+		Node[] nodes = new Node[n];
+		for (int i = 0; i < n; i++) {
+			nodes[i] = new Node(i);
+		}
+		Map <Integer, Edge> edgeMap = new HashMap<Integer,Edge>();
+		for (int i = 0; i < m; i++) {
+			int u = scan.nextInt();
+			int v = scan.nextInt();
+			int cMin = scan.nextInt();
+			//edgeMap.put(i, new Edge(nodes[v],nodes[u],c,i));
+			//edgeMap.put(i, new Edge(nodes[u],nodes[v],c,i));
+			nodes[u].addNeighbour(nodes[v], new Edge(nodes[u],c,i));
+			nodes[v].addNeighbour(nodes[u],new Edge(nodes[v],c,i));
+		}
+		
+		int[] plan = new int[p];
+		for (int i = 0; i < p; i++) {
+			plan[i] = scan.nextInt();
+		}
+		scan.close();
+		
+		while(BFS(nodes,0,n-1)){
+			
+		}
+		
+		
+	}
+
+}

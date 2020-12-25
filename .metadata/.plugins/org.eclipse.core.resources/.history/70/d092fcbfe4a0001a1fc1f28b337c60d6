@@ -1,0 +1,265 @@
+package solution;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Scanner;
+
+public class RailwayPlanning {
+
+	public static class Edge {
+		
+		private Node node1;
+		private Node node2;
+		private int edgeNumber;
+		private int capacity;
+		private int flow;
+		public Edge(Node node1, Node node2, int capacity,int flow){
+			this.node1=node1;
+			this.node2=node2;
+			this.capacity=capacity;
+			this.flow=flow;
+			
+		}
+		public int getFlow(){
+			return flow;
+		}
+		public int getCapacity(){
+			return capacity;
+		}
+		public Node getNode1(){
+			return node1;
+		}
+		public Node getNode2(){
+			return node2;
+		}
+		public int getEdgeNumber(){
+			return edgeNumber;
+		}
+		public void setFlow(int f){
+			flow=f;
+		}
+		
+	}
+	public static class ResEdge {
+		
+		private Node node1;
+		private Node node2;
+		private int flow;
+		public ResEdge(Node node1, Node node2, int flow){
+			this.node1=node1;
+			this.node2=node2;
+			this.flow=flow;
+			
+		}
+		public int getFlow(){
+			return flow;
+		}
+
+		public Node getNode1(){
+			return node1;
+		}
+		public Node getNode2(){
+			return node2;
+		}
+		
+		public void setFlow(int f){
+			flow=f;
+		}
+		
+	}
+	
+	public static class Node implements Comparable<Node>{
+		private int idx;
+		private boolean visited;
+		private Node pred;
+		private Map<Node, ResEdge> resNeighbours;
+		private Map<Node, Edge> realNeighbours;
+		
+		
+		public Node(int idx){
+			this.idx=idx;
+			resNeighbours = new HashMap<Node, ResEdge>(); 
+			realNeighbours = new HashMap<Node, Edge>(); 
+		}
+		
+		public int getIndex(){
+			return idx;
+		}
+		
+		public Map<Node,Edge> getRealNeighbours(){
+			return realNeighbours;
+		}
+		
+		public void addRealNeighbour(Node node, Edge edge){
+			realNeighbours.put(node, edge);
+		}
+		
+		public Map<Node,ResEdge> getResNeighbours(){
+			return resNeighbours;
+		}
+		
+		public void addResNeighbour(Node node, ResEdge edge){
+			resNeighbours.put(node, edge);
+		}
+		
+		public boolean getVisited(){
+			return visited;
+		}
+		
+		public void setVisited(boolean visit){
+			visited=visit;
+		}
+		
+		public Node getPred(){
+			return pred;
+		}
+		
+		public void setPred(Node p){
+			pred=p;
+		}
+
+		@Override
+		public int compareTo(Node node) {
+			return idx - node.idx;
+		}
+		
+		public boolean equals(Node node){
+			if(idx==node.idx){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	public class returnBFS {
+		public returnBFS(){
+			
+		}
+	}
+	public static int BFS(Node[] nodes, int start, int end){
+		if(end==start){
+			return 0;
+		}
+		
+		for (Node node :nodes) {
+			node.setVisited(false);
+		}
+		nodes[start].setVisited(true);
+		
+		Queue<Node> q = new LinkedList<>();
+		q.add(nodes[start]);
+
+		while(!q.isEmpty()){
+			Node v=q.poll();
+			
+			for (Node vNeighbour : v.getResNeighbours().keySet() ) {
+				Edge e = v.getRealNeighbours().get(vNeighbour);
+				if(!vNeighbour.getVisited() && e.getCapacity()>e.getFlow()){
+					vNeighbour.setVisited(true);
+					q.add(vNeighbour);
+					vNeighbour.setPred(v);
+					
+					if(vNeighbour.getIndex()==end){
+						int delta=Integer.MAX_VALUE;
+						do{
+							int flow=vNeighbour.getPred().getResNeighbours().get(vNeighbour).getFlow();
+							if (flow<delta){
+								delta=flow;
+							}
+							vNeighbour=vNeighbour.getPred();
+						}while(vNeighbour.getIndex()!=start);
+						
+						vNeighbour = nodes[end];
+						do{
+							ResEdge e1 = vNeighbour.getPred().getResNeighbours().get(vNeighbour);
+							ResEdge e2 = vNeighbour.getResNeighbours().get(vNeighbour.getPred());
+							e1.setFlow(e1.getFlow()-delta);
+							e2.setFlow(e2.getFlow()+delta);
+							
+							Edge e3 = vNeighbour.getPred().getRealNeighbours().get(vNeighbour);
+							e3.setFlow(e3.getFlow()+delta);
+							vNeighbour=vNeighbour.getPred();
+						}while(vNeighbour.getIndex()!=start);
+						
+						return delta;
+					}
+				}
+			}
+		}
+		return 0;
+	}
+		
+	
+	public static void main(String[] args) {
+		Scanner scan = new Scanner(System.in);
+		int n = scan.nextInt();
+		int m = scan.nextInt();
+		int cMin = scan.nextInt();
+		int p = scan.nextInt();
+		Node[] nodes = new Node[n];
+		for (int i = 0; i < n; i++) {
+			nodes[i] = new Node(i);
+		}
+		Map <Integer, Edge> edgeMap = new HashMap<Integer,Edge>();
+		for (int i = 0; i < m; i++) {
+			int u = scan.nextInt();
+			int v = scan.nextInt();
+			int c = scan.nextInt();
+			Edge e1 = new Edge(nodes[v],nodes[u],c, 0);
+			Edge e2 = new Edge(nodes[u],nodes[v],c, 0);
+			edgeMap.put(i, e1);
+			edgeMap.put(i, e2);
+			nodes[u].addRealNeighbour(nodes[v], e1);
+			nodes[v].addRealNeighbour(nodes[u],e2);
+			
+			nodes[u].addResNeighbour(nodes[v], new ResEdge(nodes[u],nodes[v],c));
+			nodes[v].addResNeighbour(nodes[u],new ResEdge(nodes[v],nodes[u],c));
+		}
+		
+		int[] plan = new int[p];
+		for (int i = 0; i < p; i++) {
+			plan[i] = scan.nextInt();
+		}
+		scan.close();
+		int flow;
+		int result=0;
+		int removedRoutes=-1;
+		for (int i:plan){
+			do {
+				flow=BFS(nodes,0,n-1);
+			}while(flow!=0);
+			int totFlow=0;
+			for (Edge h :nodes[0].getRealNeighbours().values()){
+				totFlow+=h.getFlow();
+			}
+			if (totFlow<cMin){
+				break;
+			}else{
+				result=totFlow;
+				removedRoutes+=1;
+			}
+			Edge e=edgeMap.get(i);
+			Node n1 = e.getNode1();
+			Node n2 = e.getNode2();
+			n1.getRealNeighbours().remove(n2);
+			n2.getRealNeighbours().remove(n1);
+			n1.getResNeighbours().remove(n2);
+			n2.getResNeighbours().remove(n1);
+			for (Node s: nodes){
+				for(Edge r: s.getRealNeighbours().values()){
+					r.setFlow(0);
+				}
+				for(ResEdge r: s.getResNeighbours().values()){
+					r.setFlow(s.getRealNeighbours().get(r.getNode2()).getCapacity());
+				}
+			}
+		}
+		System.out.println(removedRoutes + " " + result);
+
+	}
+
+}
